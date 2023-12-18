@@ -1,4 +1,5 @@
 ﻿using CitiInfo.WebAPI.Models;
+using CitiInfo.WebAPI.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -9,17 +10,37 @@ namespace CitiInfo.WebAPI.Controllers
     [ApiController]
     public class PointsOfInterestController : ControllerBase
     {
+        private readonly ILogger<PointsOfInterestController> _logger;
+        private readonly LocalMailService _localMailService;
+
+        public PointsOfInterestController(ILogger<PointsOfInterestController> logger, LocalMailService localMailService)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _localMailService = localMailService ?? throw new ArgumentNullException(nameof(localMailService));
+        }
+
         [HttpGet]
         public ActionResult<IEnumerable<PointOfInterestDto>> GetPointsOfInterestCity(int cityId)
         {
-            var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
-
-            if (city == null)
+            try
             {
-                return NotFound();
+
+                var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
+
+                if (city == null)
+                {
+                    _logger.LogInformation($"City with id {cityId} wasn't found when retrieving points of interest.");
+                    return NotFound();
+                }
+
+                return Ok(city.PointsOfInterest);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogCritical($"Exception while getting points of interest for city with id {cityId}.", ex);
+                return StatusCode(500, "A problem happended while handling your request.");
             }
 
-            return Ok(city.PointsOfInterest);
         }
 
         [HttpGet("{pointOfInterestId}", Name = "GetDetailsOfPointInterest")]
@@ -167,7 +188,8 @@ namespace CitiInfo.WebAPI.Controllers
             }
 
             city.PointsOfInterest.Remove(pointInterest);
-
+            _localMailService.Send("Point of interest deleted.", $"Point of interest {pointInterest.Name} with id " +
+                $"{pointOfInterestId} has been deleted successfully");
             return NoContent();
         }
     }
