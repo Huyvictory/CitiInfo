@@ -1,3 +1,4 @@
+using CitiInfo.WebAPI.Models;
 using CitiInfo.WebAPI.Services;
 using Microsoft.AspNetCore.StaticFiles;
 using Serilog;
@@ -23,8 +24,9 @@ builder.Host.UseSerilog();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
+builder.Services.AddSingleton<CitiesDataStore>();
 
-builder.Services.AddTransient<LocalMailService>();
+builder.Services.AddTransient<IMailService, LocalMailService>();
 
 var app = builder.Build();
 
