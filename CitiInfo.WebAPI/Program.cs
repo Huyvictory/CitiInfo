@@ -1,6 +1,8 @@
+using CitiInfo.WebAPI.DbContexts;
 using CitiInfo.WebAPI.Models;
 using CitiInfo.WebAPI.Services;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -24,9 +26,13 @@ builder.Host.UseSerilog();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
-builder.Services.AddSingleton<CitiesDataStore>();
 
+builder.Services.AddSingleton<CitiesDataStore>();
 builder.Services.AddTransient<IMailService, LocalMailService>();
+
+builder.Services.AddDbContext<CityInfoContext>(
+    dbContextOptions =>
+    dbContextOptions.UseSqlite(builder.Configuration["ConnectionStrings:CitiInfoDBConnectionString"]));
 
 var app = builder.Build();
 
