@@ -1,4 +1,6 @@
-﻿using CitiInfo.WebAPI.Models;
+﻿using AutoMapper;
+using CitiInfo.WebAPI.Models;
+using CitiInfo.WebAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CitiInfo.WebAPI.Controllers
@@ -7,23 +9,27 @@ namespace CitiInfo.WebAPI.Controllers
     [Route("api/cities")]
     public class CitiesController : ControllerBase
     {
-        private readonly CitiesDataStore _citiesDataStore;
+        private readonly ICityInfoRepository _cityInfoRepository;
+        private readonly IMapper _mapper;
 
-        public CitiesController(CitiesDataStore citiesDataStore)
+        public CitiesController(ICityInfoRepository cityInfoRepository, IMapper mapper)
         {
-            _citiesDataStore = citiesDataStore ?? throw new ArgumentNullException(nameof(citiesDataStore));
+            _cityInfoRepository = cityInfoRepository ?? throw new ArgumentNullException(nameof(cityInfoRepository));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
         [HttpGet]
-        public ActionResult<IEnumerable<CityDto>> GetCities()
+        public async Task<ActionResult<IEnumerable<CityWithoutPointsOfInterestDto>>> GetCities()
         {
-            return Ok(_citiesDataStore.Cities);
+            var cityEntties = await _cityInfoRepository.GetCitiesAsync();
+
+            return Ok(_mapper.Map<IEnumerable<CityWithoutPointsOfInterestDto>>(cityEntties));
         }
-        [HttpGet("{id}")]
-        public ActionResult<CityDto> GetCityById(int id)
-        {
-            var cityToReturn = _citiesDataStore.Cities.FirstOrDefault(c => c.Id == id);
-            if (cityToReturn == null) { return NotFound(); }
-            return Ok(cityToReturn);
-        }
+        //[HttpGet("{id}")]
+        //public ActionResult<CityDto> GetCityById(int id)
+        //{
+        //    //var cityToReturn = _citiesDataStore.Cities.FirstOrDefault(c => c.Id == id);
+        //    //if (cityToReturn == null) { return NotFound(); }
+        //    //return Ok(cityToReturn);
+        //}
     }
 }
