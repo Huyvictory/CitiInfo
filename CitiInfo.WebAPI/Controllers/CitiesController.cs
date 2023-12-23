@@ -24,12 +24,23 @@ namespace CitiInfo.WebAPI.Controllers
 
             return Ok(_mapper.Map<IEnumerable<CityWithoutPointsOfInterestDto>>(cityEntties));
         }
-        //[HttpGet("{id}")]
-        //public ActionResult<CityDto> GetCityById(int id)
-        //{
-        //    //var cityToReturn = _citiesDataStore.Cities.FirstOrDefault(c => c.Id == id);
-        //    //if (cityToReturn == null) { return NotFound(); }
-        //    //return Ok(cityToReturn);
-        //}
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetCityById(int id, bool includePointsOfInterset = false)
+        {
+            var cityDetails = await _cityInfoRepository.GetCityAsync(id, includePointsOfInterset);
+
+            if (cityDetails == null)
+            {
+                return NotFound();
+            }
+
+            if (includePointsOfInterset)
+            {
+                return Ok(_mapper.Map<CityDto>(cityDetails));
+            }
+
+            return Ok(_mapper.Map<CityWithoutPointsOfInterestDto>(cityDetails));
+        }
     }
 }
