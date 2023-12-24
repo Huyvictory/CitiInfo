@@ -28,6 +28,11 @@ namespace CitiInfo.WebAPI.Services
             return await _cityInfoContext.Cities.AnyAsync(c => c.Id == cityId);
         }
 
+        public async Task<bool> CityNameMatchesCityId(string? cityName, int cityId)
+        {
+            return await _cityInfoContext.Cities.AnyAsync(c => c.Id == cityId && c.Name == cityName);
+        }
+
         public void DeletePointOfInterestsForCity(PointOfInterest pointOfInterest)
         {
             _cityInfoContext.PointsOfInterest.Remove(pointOfInterest);
